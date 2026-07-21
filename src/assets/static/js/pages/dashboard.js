@@ -386,8 +386,35 @@ function renderCharts(charts) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Loading & error states
+// Bootstrap-only, progressive-enhancement friendly: dim the content while
+// fetching and surface a single alert if live data cannot be loaded.
+// ---------------------------------------------------------------------------
+
+const dashboardContent = document.querySelector(".page-content")
+
+// Toggle a subtle dimmed "loading" state on the dashboard content.
+function setDashboardLoading(isLoading) {
+  if (!dashboardContent) return
+  dashboardContent.classList.toggle("opacity-75", isLoading)
+}
+
+// Show a single Bootstrap alert when live data cannot be loaded.
+function showDashboardError() {
+  if (!dashboardContent || document.querySelector("#dashboard-error-alert")) return
+
+  const alert = createEl("div", "alert alert-warning")
+  alert.id = "dashboard-error-alert"
+  alert.setAttribute("role", "alert")
+  alert.textContent = "Unable to load live dashboard data. Showing default content."
+  dashboardContent.prepend(alert)
+}
+
 // Orchestrator: fetch once, render every data-driven section, fail gracefully.
 async function initDashboardStats() {
+  setDashboardLoading(true)
+
   try {
     const data = await fetchDashboardData(DASHBOARD_DATA_URL)
     renderProfile(data.profile)
@@ -397,7 +424,10 @@ async function initDashboardStats() {
     renderCharts(data.charts)
   } catch (error) {
     console.error("Unable to load dashboard data:", error)
+    showDashboardError()
     // Static HTML values are intentionally kept as a fallback.
+  } finally {
+    setDashboardLoading(false)
   }
 }
 
