@@ -165,3 +165,60 @@ chartIndia.render()
 chartEurope.render()
 chartProfileVisit.render()
 chartVisitorsProfile.render()
+
+// ---------------------------------------------------------------------------
+// Statistics cards — dynamic data binding
+// Loads dashboard-data.json and updates the existing stat cards in place.
+// Progressive enhancement: if the fetch fails, the static HTML values remain.
+// ---------------------------------------------------------------------------
+
+const DASHBOARD_DATA_URL = "assets/static/data/dashboard-data.json"
+const statsNumberFormatter = new Intl.NumberFormat("de-DE")
+
+// Fetch and parse the dashboard data; throws on a non-OK response.
+async function fetchDashboardData(url) {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status} ${response.statusText}`)
+  }
+  return response.json()
+}
+
+// Format a raw number with locale-aware thousands separators.
+const formatStatValue = (value) => statsNumberFormatter.format(value)
+
+// Update a single stat card, matched by its data-stat-id.
+function updateStatCard(stat) {
+  const card = document.querySelector(`#statistics-cards [data-stat-id="${stat.id}"]`)
+  if (!card) return
+
+  const iconEl = card.querySelector("[data-stat-icon]")
+  const glyphEl = card.querySelector("[data-stat-glyph]")
+  const labelEl = card.querySelector("[data-stat-label]")
+  const valueEl = card.querySelector("[data-stat-value]")
+
+  if (iconEl) {
+    iconEl.classList.remove("purple", "blue", "green", "red")
+    iconEl.classList.add(stat.variant)
+  }
+
+  if (glyphEl) glyphEl.className = stat.icon
+  if (labelEl) labelEl.textContent = stat.label
+  if (valueEl) valueEl.textContent = formatStatValue(stat.value)
+}
+
+// Render every stat card from the stats array.
+const renderStatCards = (stats) => stats.forEach(updateStatCard)
+
+// Orchestrator: fetch the data, render the cards, and fail gracefully.
+async function initDashboardStats() {
+  try {
+    const data = await fetchDashboardData(DASHBOARD_DATA_URL)
+    renderStatCards(data.stats)
+  } catch (error) {
+    console.error("Unable to load dashboard statistics:", error)
+    // Static HTML values are intentionally kept as a fallback.
+  }
+}
+
+initDashboardStats()
