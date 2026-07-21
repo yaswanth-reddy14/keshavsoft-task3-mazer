@@ -222,17 +222,40 @@ function createEl(tag, className) {
   return el
 }
 
+// Build an avatar wrapper containing an image (shared by comments and messages).
+function createAvatar(sizeClass, src, alt) {
+  const avatar = createEl("div", `avatar ${sizeClass}`)
+  const image = document.createElement("img")
+  image.src = src
+  image.alt = alt
+  avatar.appendChild(image)
+  return avatar
+}
+
+// Replace a container's children with items built from the data (or an empty state).
+function renderList(selector, items, buildItem, buildEmptyState) {
+  const container = document.querySelector(selector)
+  if (!container) return
+
+  container.textContent = ""
+
+  if (!Array.isArray(items) || items.length === 0) {
+    container.appendChild(buildEmptyState())
+    return
+  }
+
+  const fragment = document.createDocumentFragment()
+  items.forEach((item) => fragment.appendChild(buildItem(item)))
+  container.appendChild(fragment)
+}
+
 // Build one <tr> for a single comment record.
 function buildCommentRow(comment) {
   const row = document.createElement("tr")
 
   const nameCell = createEl("td", "col-3")
   const person = createEl("div", "d-flex align-items-center")
-  const avatar = createEl("div", "avatar avatar-md")
-  const image = document.createElement("img")
-  image.src = comment.avatar
-  image.alt = comment.name
-  avatar.appendChild(image)
+  const avatar = createAvatar("avatar-md", comment.avatar, comment.name)
   const name = createEl("p", "font-bold ms-3 mb-0")
   name.textContent = comment.name
   person.append(avatar, name)
@@ -258,21 +281,8 @@ function buildEmptyCommentsRow() {
 }
 
 // Replace the comments table body with rows built from the data.
-function renderComments(comments) {
-  const tableBody = document.querySelector("#comments-table tbody")
-  if (!tableBody) return
-
-  tableBody.textContent = "" // clear existing rows without using innerHTML
-
-  if (!Array.isArray(comments) || comments.length === 0) {
-    tableBody.appendChild(buildEmptyCommentsRow())
-    return
-  }
-
-  const fragment = document.createDocumentFragment()
-  comments.forEach((comment) => fragment.appendChild(buildCommentRow(comment)))
-  tableBody.appendChild(fragment)
-}
+const renderComments = (comments) =>
+  renderList("#comments-table tbody", comments, buildCommentRow, buildEmptyCommentsRow)
 
 // ---------------------------------------------------------------------------
 // Recent messages — dynamic list rendering
@@ -283,11 +293,7 @@ function renderComments(comments) {
 function buildMessageItem(message) {
   const item = createEl("div", "recent-message d-flex px-4 py-3")
 
-  const avatar = createEl("div", "avatar avatar-lg")
-  const image = document.createElement("img")
-  image.src = message.avatar
-  image.alt = message.name
-  avatar.appendChild(image)
+  const avatar = createAvatar("avatar-lg", message.avatar, message.name)
 
   const details = createEl("div", "name ms-4")
   const name = createEl("h5", "mb-1")
@@ -308,21 +314,8 @@ function buildEmptyMessagesItem() {
 }
 
 // Replace the recent-messages list with items built from the data.
-function renderRecentMessages(messages) {
-  const container = document.querySelector("#recent-messages")
-  if (!container) return
-
-  container.textContent = ""
-
-  if (!Array.isArray(messages) || messages.length === 0) {
-    container.appendChild(buildEmptyMessagesItem())
-    return
-  }
-
-  const fragment = document.createDocumentFragment()
-  messages.forEach((message) => fragment.appendChild(buildMessageItem(message)))
-  container.appendChild(fragment)
-}
+const renderRecentMessages = (messages) =>
+  renderList("#recent-messages", messages, buildMessageItem, buildEmptyMessagesItem)
 
 // ---------------------------------------------------------------------------
 // Profile card — single-instance data binding
