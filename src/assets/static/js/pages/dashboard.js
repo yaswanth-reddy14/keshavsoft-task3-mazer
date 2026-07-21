@@ -210,13 +210,129 @@ function updateStatCard(stat) {
 // Render every stat card from the stats array.
 const renderStatCards = (stats) => stats.forEach(updateStatCard)
 
-// Orchestrator: fetch the data, render the cards, and fail gracefully.
+// ---------------------------------------------------------------------------
+// Latest comments — dynamic table rendering
+// Rebuilds the comments table body from the already-loaded dashboard data.
+// ---------------------------------------------------------------------------
+
+// Small helper: create an element with an optional class name.
+function createEl(tag, className) {
+  const el = document.createElement(tag)
+  if (className) el.className = className
+  return el
+}
+
+// Build one <tr> for a single comment record.
+function buildCommentRow(comment) {
+  const row = document.createElement("tr")
+
+  const nameCell = createEl("td", "col-3")
+  const person = createEl("div", "d-flex align-items-center")
+  const avatar = createEl("div", "avatar avatar-md")
+  const image = document.createElement("img")
+  image.src = comment.avatar
+  image.alt = comment.name
+  avatar.appendChild(image)
+  const name = createEl("p", "font-bold ms-3 mb-0")
+  name.textContent = comment.name
+  person.append(avatar, name)
+  nameCell.appendChild(person)
+
+  const messageCell = createEl("td", "col-auto")
+  const message = createEl("p", "mb-0")
+  message.textContent = comment.message
+  messageCell.appendChild(message)
+
+  row.append(nameCell, messageCell)
+  return row
+}
+
+// Build the fallback row shown when there are no comments.
+function buildEmptyCommentsRow() {
+  const row = document.createElement("tr")
+  const cell = createEl("td", "text-center text-muted")
+  cell.colSpan = 2
+  cell.textContent = "No comments available."
+  row.appendChild(cell)
+  return row
+}
+
+// Replace the comments table body with rows built from the data.
+function renderComments(comments) {
+  const tableBody = document.querySelector("#comments-table tbody")
+  if (!tableBody) return
+
+  tableBody.textContent = "" // clear existing rows without using innerHTML
+
+  if (!Array.isArray(comments) || comments.length === 0) {
+    tableBody.appendChild(buildEmptyCommentsRow())
+    return
+  }
+
+  const fragment = document.createDocumentFragment()
+  comments.forEach((comment) => fragment.appendChild(buildCommentRow(comment)))
+  tableBody.appendChild(fragment)
+}
+
+// ---------------------------------------------------------------------------
+// Recent messages — dynamic list rendering
+// Rebuilds the recent-messages list from the already-loaded dashboard data.
+// ---------------------------------------------------------------------------
+
+// Build one list item for a single recent-message record.
+function buildMessageItem(message) {
+  const item = createEl("div", "recent-message d-flex px-4 py-3")
+
+  const avatar = createEl("div", "avatar avatar-lg")
+  const image = document.createElement("img")
+  image.src = message.avatar
+  image.alt = message.name
+  avatar.appendChild(image)
+
+  const details = createEl("div", "name ms-4")
+  const name = createEl("h5", "mb-1")
+  name.textContent = message.name
+  const username = createEl("h6", "text-muted mb-0")
+  username.textContent = message.username
+  details.append(name, username)
+
+  item.append(avatar, details)
+  return item
+}
+
+// Build the fallback item shown when there are no recent messages.
+function buildEmptyMessagesItem() {
+  const item = createEl("div", "px-4 py-3 text-center text-muted")
+  item.textContent = "No recent messages."
+  return item
+}
+
+// Replace the recent-messages list with items built from the data.
+function renderRecentMessages(messages) {
+  const container = document.querySelector("#recent-messages")
+  if (!container) return
+
+  container.textContent = ""
+
+  if (!Array.isArray(messages) || messages.length === 0) {
+    container.appendChild(buildEmptyMessagesItem())
+    return
+  }
+
+  const fragment = document.createDocumentFragment()
+  messages.forEach((message) => fragment.appendChild(buildMessageItem(message)))
+  container.appendChild(fragment)
+}
+
+// Orchestrator: fetch once, render every data-driven section, fail gracefully.
 async function initDashboardStats() {
   try {
     const data = await fetchDashboardData(DASHBOARD_DATA_URL)
     renderStatCards(data.stats)
+    renderComments(data.comments)
+    renderRecentMessages(data.recentMessages)
   } catch (error) {
-    console.error("Unable to load dashboard statistics:", error)
+    console.error("Unable to load dashboard data:", error)
     // Static HTML values are intentionally kept as a fallback.
   }
 }
