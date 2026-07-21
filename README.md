@@ -1,136 +1,261 @@
-<h1 align="center">Mazer Dashboard</h1>
+# Mazer Admin Dashboard — Customized
 
-![Mazer Screenshot](https://user-images.githubusercontent.com/45036724/167523601-9d20fb17-1989-488f-b619-cb53c0db8898.png)
+## Overview
 
-<p align="center">Mazer is an Admin Dashboard Template that can help you develop faster. Made with Bootstrap 5. No jQuery dependency.</p>
-<div align="center">
+A customized, data-driven admin dashboard built on top of the open-source
+[Mazer](https://github.com/zuramai/mazer) Bootstrap 5 template. The goal of this
+project was to take an existing real-world codebase and adapt it: apply custom
+branding, then convert every hardcoded dashboard widget into a **JSON-driven
+component** fetched at runtime with the Fetch API — while preserving the original
+Bootstrap design, responsiveness, and accessibility.
 
-[![All Contributors](https://img.shields.io/github/contributors/zuramai/mazer)](https://github.com/zuramai/mazer/graphs/contributors)
-![GitHub last commit](https://img.shields.io/github/last-commit/zuramai/mazer.svg)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/zuramai/mazer)
-[![License](https://img.shields.io/github/license/zuramai/mazer.svg)](LICENSE)
+All dynamic content on the dashboard (statistics, charts, comments, messages and
+the profile card) is rendered from a single JSON source through a shared fetch
+flow, with graceful loading and error states.
 
-</div>
+## Features
 
-<p align="center">
-	<a href="http://zuramai.github.io/mazer/demo">Demo Page</a>&nbsp;&nbsp;&nbsp;
-	<a href="http://zuramai.github.io/mazer/docs">Documentation Page</a>&nbsp;&nbsp;&nbsp;
-	<a href="https://github.com/zuramai/mazer/blob/main/README_INDONESIAN.md">Indonesian README</a>&nbsp;&nbsp;&nbsp;
-</p>
+- **Custom branding** — a distinct indigo brand palette (`#4338CA`) applied through
+  SCSS variables in `_variables.scss`, cascading consistently across light and dark
+  modes with WCAG-AAA contrast for white-on-primary.
+- **JSON-driven dashboard** — every widget reads from `dashboard-data.json`; the UI
+  is fully decoupled from the data source.
+- **Statistics cards** — the four stat cards are bound in place from `data.stats`,
+  with locale-aware number formatting via `Intl.NumberFormat`.
+- **Latest Comments** — the table body is rebuilt dynamically from `data.comments`
+  using DOM methods (no `innerHTML`), with an empty-state fallback row.
+- **Recent Messages** — the message list is rendered from `data.recentMessages`,
+  leaving the "Start Conversation" action intact.
+- **Profile Card** — avatar, name and username bound in place from `data.profile`.
+- **ApexCharts integration** — the bar, donut and four region sparkline charts are
+  fed from `data.charts` using `updateSeries()` / `updateOptions()` so chart type,
+  height, colors and animations are preserved (charts are never rebuilt).
+- **Shared Fetch API flow** — a single network request loads all dashboard data;
+  every section renders from the same in-memory object.
+- **Loading & error handling** — a subtle Bootstrap loading state while fetching,
+  and a single, non-duplicated alert if live data cannot be loaded.
+- **Progressive enhancement** — the original static HTML remains as a functional
+  fallback; if JavaScript or the fetch fails, the dashboard still renders.
+- **Accessibility improvements** — labelled icon-only controls, image `alt` text,
+  table header scopes, decorative-icon hiding, a navigation landmark and a distinct
+  heading outline.
+- **Code refactoring** — shared `createAvatar` and `renderList` helpers remove
+  duplication across the rendering logic.
 
+## Tech Stack
+
+- **HTML** (semantic markup)
+- **SCSS** (Bootstrap customization via variables)
+- **Bootstrap 5**
+- **JavaScript (ES6)** — `async/await`, Fetch API, modules, DOM APIs
+- **ApexCharts** — charts and sparklines
+- **Vite** — dev server and production build
+- **Nunjucks** (via `vite-plugin-nunjucks`) — templating / layout inheritance
+
+## Folder Structure
+
+```
+task-3/
+├── src/
+│   ├── index.html                          # Dashboard page (data-bound widgets)
+│   ├── sidebar-items.json                  # Sidebar menu data
+│   ├── layouts/                            # Nunjucks layouts (master, sidebar, ...)
+│   ├── partials/                           # Shared fragments (footer)
+│   └── assets/
+│       ├── scss/
+│       │   ├── _variables.scss             # Brand colors / theme variables
+│       │   └── ...
+│       ├── js/
+│       │   ├── app.js                      # JS entry point
+│       │   └── mazer.js                    # Sidebar behavior
+│       └── static/
+│           ├── data/
+│           │   └── dashboard-data.json     # Dashboard data source
+│           ├── js/pages/
+│           │   └── dashboard.js            # Fetch + data-binding logic
+│           ├── images/                     # Avatars, logos, samples
+│           └── fonts/
+├── dist/                                   # Compiled output (generated by Vite)
+├── vite.config.js
+└── package.json
+```
 
 ## Installation
 
-### Using a ready-made built (recommended)
+```bash
+# 1. Clone the repository
+git clone https://github.com/yaswanth-reddy14/keshavsoft-task3-mazer.git .
 
-Download the latest release from the [releases page](https://github.com/zuramai/mazer/releases "releases page").
-Open the index HTML file and explore the source code.
-
-### Building yourself
-
-1. Clone the repository 
-```sh
-git clone https://github.com/zuramai/mazer
-```
-
-2. Install dependencies
-```sh
-yarn install
-# OR
+# 2. Install dependencies
 npm install
 ```
 
-3. Run it locally
-```sh
+Requires **Node.js 16+**.
+
+## Development
+
+```bash
 npm run dev
 ```
 
-4. Open `http://localhost:5173` in your browser
+Starts the Vite dev server with hot-module reloading (default:
+`http://localhost:5173`). Source files live in `src/`; never edit `dist/` by hand.
 
-### Building with Docker
+## Production Build
 
-- Clone the repository `git clone https://github.com/zuramai/mazer`
-- Make sure you have Docker installed and run:
-    - `docker build -t mazer-frontend .`
-    - `docker run -it -d -p 5173:80 --name mazer mazer-frontend`
-    - Open `http://localhost:5173`
-### Using CDN 
-Simple example using CDN from [jsdelivr.net](https://www.jsdelivr.com/).
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Mazer Admin Dashboard</title>
-
-    <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo/assets/compiled/svg/favicon.svg" type="image/x-icon">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo/assets/compiled/css/app.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo/assets/compiled/css/app-dark.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo/assets/compiled/css/iconly.css">
-</head>
-
-<body>
-    <script src="https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo/assets/static/js/initTheme.js"></script>
-    <!-- Start content here -->
-
-    <!-- End content -->
-    <script src="https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo/assets/static/js/components/dark.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo/assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo/assets/compiled/js/app.js"></script>
-
-    <!-- Need: Apexcharts -->
-    <script src="https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo/assets/extensions/apexcharts/apexcharts.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo/assets/static/js/pages/dashboard.js"></script>
-</body>
-
-</html>
+```bash
+npm run build
 ```
 
-#### CDN Prefix
+Compiles SCSS, bundles JavaScript, and outputs a static site to `dist/`.
+Preview the build locally with:
 
-You can use the url with a prefix like this:
-```
-https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo
-```
-
-A simple example:
-```
-https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo/assets/compiled/css/app.css
+```bash
+npm run preview
 ```
 
-## Community Mazer-based open sources
+## Deployment
 
-- [CodeIgniter 4](https://github.com/irsyadulibad/mazer-codeigniter) by [@irsyadulibad](https://github.com/irsyadulibad)
-- [Laravel Mazer Starter](https://github.com/billalxcode/laravel-mazer-starter) by [@billalxcode](https://github.com/billalxcode)
-- [Nuxt](https://github.com/fzn0x/mazer-nuxt) by [@fzn0x](https://github.com/fzn0x)
-- [React JS Component Library](https://github.com/fachryansyah/react-mazer-ui) by [@fachryansyah](https://github.com/fachryansyah/)
-- [Adonisjs 5](https://github.com/afman42/mazer-adonisjs) by [@afman42](https://github.com/afman42/)
-- [Django](https://github.com/bimbims125/mazer-django) by [@bimbims125](https://github.com/bimbims125/)
-- [Flask](https://github.com/antheiz/mazer-flask) by [@antheiz](https://github.com/antheiz/)
-- [Symfony 6.3 (Mazer 2.1.0)](https://github.com/TheoD02/mazer-symfony-6.3/tree/mazer-2.1.0) by [@theod02](ttps://github.com/TheoD02)
-- [Spring-Thymeleaf](https://github.com/deyhay-enterprise/spring-project-mazer-template) by [@hi-rullah](https://github.com/hi-rullah)
-- [Ruby on Rails](https://github.com/noesya/mazer-rails) by [@noesya](https://github.com/noesya)
-- [Yii2](https://github.com/anovsiradj/yii2-theme-mazer) by [@anovsiradj](https://github.com/anovsiradj)
-- [Next JS](https://github.com/dipras/next-mazer) by [@dipras](https://github.com/dipras)
-- Did you make in another framework or tools? Open up Pull Requests and put yours here! 😃
+The build output in `dist/` is fully static and can be hosted anywhere.
 
-## Contributing
+**Netlify / Vercel**
+- Build command: `npm run build`
+- Publish directory: `dist`
 
-Please follow [Contributing Guide](./CONTRIBUTING.md) before contributing.
+**GitHub Pages**
+- Run `npm run build`, then publish the `dist/` folder (e.g. via the `gh-pages`
+  branch or an actions workflow).
 
-## License
+Because the dashboard fetches `assets/static/data/dashboard-data.json` with a
+relative path, it resolves correctly in production without configuration changes.
+To switch to a real backend later, change only the `DASHBOARD_DATA_URL` constant in
+`dashboard.js` (e.g. to `/api/dashboard`) — the rendering code is unchanged.
 
-Mazer is under [MIT License](./LICENSE).
+## JSON Data Structure
+
+The entire dashboard is driven by `src/assets/static/data/dashboard-data.json`,
+shaped like a REST aggregate response:
+
+```json
+{
+  "version": "1.0",
+  "generatedAt": "2026-07-21",
+  "profile": {
+    "name": "John Duck",
+    "username": "@johnducky",
+    "avatar": "assets/static/images/faces/1.jpg"
+  },
+  "stats": [
+    {
+      "id": "profile-views",
+      "label": "Profile Views",
+      "value": 112000,
+      "icon": "iconly-boldShow",
+      "variant": "purple"
+    }
+  ],
+  "charts": {
+    "profileVisit": {
+      "title": "Profile Visit",
+      "categories": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+      "series": [{ "name": "Visits", "data": [9, 20, 30, 20, 10, 20] }]
+    },
+    "visitorsProfile": {
+      "title": "Visitors Profile",
+      "labels": ["Male", "Female"],
+      "series": [70, 30]
+    },
+    "regions": [
+      {
+        "id": "europe",
+        "label": "Europe",
+        "value": 862,
+        "variant": "primary",
+        "sparkline": [310, 800, 600, 430, 540, 340]
+      }
+    ]
+  },
+  "comments": [
+    {
+      "id": 1,
+      "name": "Si Cantik",
+      "avatar": "assets/static/images/faces/5.jpg",
+      "message": "Congratulations on your graduation!"
+    }
+  ],
+  "recentMessages": [
+    {
+      "id": 1,
+      "name": "Hank Schrader",
+      "username": "@hankschrader",
+      "avatar": "assets/static/images/faces/4.jpg"
+    }
+  ]
+}
+```
+
+**Design notes**
+- Numbers are stored raw (`112000`), not pre-formatted — the UI formats them,
+  avoiding duplicate / locale-locked data.
+- Colors are expressed as semantic `variant`s, not hex — keeping data decoupled
+  from the design system.
+- Every collection item has a stable `id` for reliable binding.
+
+## Accessibility Improvements
+
+- **Labelled controls** — the mobile navigation toggle, sidebar-hide button and
+  dark-mode switch now expose accessible names (`aria-label`, `role="button"`).
+- **Images** — all avatars have meaningful `alt` text (including the static
+  fallback rows).
+- **Tables** — header cells use `scope="col"`.
+- **Decorative icons** — stat glyphs and region color dots are marked
+  `aria-hidden="true"` to avoid redundant screen-reader output.
+- **Landmarks & outline** — the sidebar menu is a named navigation landmark, and a
+  duplicate `Profile Visit` heading was renamed to `Visits by Region` to restore a
+  clean heading outline.
+- **Error messaging** — the data-error alert uses `role="alert"`.
+
+## Performance Improvements
+
+- **Single shared fetch** — all sections render from one network request instead of
+  one request per widget.
+- **Batched DOM writes** — list rendering uses a `DocumentFragment`, so rows insert
+  in a single reflow.
+- **In-place chart updates** — `updateSeries()` / `updateOptions()` mutate existing
+  ApexCharts instances rather than destroying and recreating them.
+- **Reused formatter** — a single `Intl.NumberFormat` instance is created once and
+  reused across all cards.
+- **No `innerHTML`** — dynamic content is built with `createElement` / `textContent`
+  for safety and predictable performance.
+- **Deduplicated logic** — shared `createAvatar` and `renderList` helpers reduce
+  code size and maintenance surface.
+
+## Screenshots
+
+> _Add screenshots here._
+
+| Desktop | Mobile |
+| ------- | ------ |
+| _screenshot_ | _screenshot_ |
+
+## Future Improvements
+
+- Replace the static JSON file with a live REST API endpoint (only the fetch URL
+  changes).
+- Drive the remaining region total numbers and the sidebar menu from JSON as well.
+- Add skeleton-loader placeholders for a richer loading experience.
+- Persist the user's dark-mode preference.
+- Add automated tests (unit tests for the rendering helpers, and an accessibility
+  regression check).
+- Internationalize number / date formatting based on user locale.
 
 ## Author
 
-Mazer is created by <a href="https://saugi.me">Saugi</a>.
+- **Name:** Dondeti Yaswanth Reddy
+- **Email:** yaswanthreddydondeti@gmail.com
+- **GitHub:** https://github.com/yaswanth-reddy14
 
-## Sponsors
+## Credits
 
-![zuramai's sponsors](https://raw.githubusercontent.com/zuramai/static/main/sponsors.svg)
+Built on top of [Mazer](https://github.com/zuramai/mazer) by
+[zuramai](https://github.com/zuramai), used under the MIT License.
