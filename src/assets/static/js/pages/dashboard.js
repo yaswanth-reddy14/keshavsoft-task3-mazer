@@ -324,10 +324,32 @@ function renderRecentMessages(messages) {
   container.appendChild(fragment)
 }
 
+// ---------------------------------------------------------------------------
+// Profile card — single-instance data binding
+// Updates the profile avatar, name and username in place.
+// ---------------------------------------------------------------------------
+
+// Update the profile card fields from the profile object.
+function renderProfile(profile) {
+  if (!profile) return
+
+  const avatar = document.querySelector("[data-profile-avatar]")
+  const name = document.querySelector("[data-profile-name]")
+  const username = document.querySelector("[data-profile-username]")
+
+  if (avatar) {
+    avatar.src = profile.avatar
+    avatar.alt = profile.name
+  }
+  if (name) name.textContent = profile.name
+  if (username) username.textContent = profile.username
+}
+
 // Orchestrator: fetch once, render every data-driven section, fail gracefully.
 async function initDashboardStats() {
   try {
     const data = await fetchDashboardData(DASHBOARD_DATA_URL)
+    renderProfile(data.profile)
     renderStatCards(data.stats)
     renderComments(data.comments)
     renderRecentMessages(data.recentMessages)
