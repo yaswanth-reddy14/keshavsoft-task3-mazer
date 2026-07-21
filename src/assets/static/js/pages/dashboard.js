@@ -345,6 +345,47 @@ function renderProfile(profile) {
   if (username) username.textContent = profile.username
 }
 
+// ---------------------------------------------------------------------------
+// Charts — dynamic data binding
+// Updates the already-rendered ApexCharts instances from the dashboard data
+// using updateOptions()/updateSeries(), so chart type, height, colors and
+// animations are preserved (charts are never rebuilt).
+// ---------------------------------------------------------------------------
+
+// Map region ids to their existing chart instances.
+const regionCharts = {
+  europe: chartEurope,
+  america: chartAmerica,
+  india: chartIndia,
+  indonesia: chartIndonesia,
+}
+
+// Update every chart from data.charts; missing data leaves a chart untouched.
+function renderCharts(charts) {
+  if (!charts) return
+
+  if (charts.profileVisit) {
+    const { series, categories } = charts.profileVisit
+    if (categories) chartProfileVisit.updateOptions({ xaxis: { categories } })
+    if (series) chartProfileVisit.updateSeries(series)
+  }
+
+  if (charts.visitorsProfile) {
+    const { series, labels } = charts.visitorsProfile
+    if (labels) chartVisitorsProfile.updateOptions({ labels })
+    if (series) chartVisitorsProfile.updateSeries(series)
+  }
+
+  if (Array.isArray(charts.regions)) {
+    charts.regions.forEach((region) => {
+      const chart = regionCharts[region.id]
+      if (chart && region.sparkline) {
+        chart.updateSeries([{ name: region.label, data: region.sparkline }])
+      }
+    })
+  }
+}
+
 // Orchestrator: fetch once, render every data-driven section, fail gracefully.
 async function initDashboardStats() {
   try {
@@ -353,6 +394,7 @@ async function initDashboardStats() {
     renderStatCards(data.stats)
     renderComments(data.comments)
     renderRecentMessages(data.recentMessages)
+    renderCharts(data.charts)
   } catch (error) {
     console.error("Unable to load dashboard data:", error)
     // Static HTML values are intentionally kept as a fallback.
